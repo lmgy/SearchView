@@ -29,28 +29,28 @@ import android.widget.*
  */
 class SearchView : FrameLayout, Filter.FilterListener {
 
-    private lateinit var mMenuItem: MenuItem
+    private var mMenuItem: MenuItem? = null
     private var mIsSearchOpen = false
     private var mAnimationDuration: Int = 0
     private var mClearingFocus: Boolean = false
 
     //Views
     private lateinit var mSearchLayout: View
-    private lateinit var mTintView: View
-    private lateinit var mSuggestionsListView: ListView
-    private lateinit var mSearchSrcTextView: EditText
-    private lateinit var mBackBtn: ImageButton
-    private lateinit var mVoiceBtn: ImageButton
-    private lateinit var mEmptyBtn: ImageButton
+    private var mTintView: View? = null
+    private var mSuggestionsListView: ListView? = null
+    private var mSearchSrcTextView: EditText? = null
+    private var mBackBtn: ImageButton? = null
+    private var mVoiceBtn: ImageButton? = null
+    private var mEmptyBtn: ImageButton? = null
     private lateinit var mSearchTopBar: RelativeLayout
 
     private var mOldQueryText: CharSequence? = null
     private var mUserQuery: CharSequence? = null
 
-    private lateinit var mOnQueryChangeListener: OnQueryTextListener
-    private lateinit var mSearchViewListener: SearchViewListener
+    private var mOnQueryChangeListener: OnQueryTextListener? = null
+    private var mSearchViewListener: SearchViewListener? = null
 
-    private lateinit var mAdapter: ListAdapter
+    private var mAdapter: ListAdapter? = null
 
     private lateinit var mSavedState: SavedState
     private var submit = false
@@ -62,11 +62,13 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
     private lateinit var mContext: Context
 
+    constructor(context: Context) : this(context, null)
 
-    constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(
+    constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
+
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
         context,
-        attrs,
-        defStyleAttr
+        attrs
     ) {
         mContext = context
         initiateView()
@@ -137,19 +139,19 @@ class SearchView : FrameLayout, Filter.FilterListener {
         LayoutInflater.from(mContext).inflate(R.layout.search_view, this, true)
         mSearchLayout = findViewById(R.id.search_layout)
 
-        mSearchTopBar = mSearchLayout.findViewById(R.id.search_top_bar) as RelativeLayout
-        mSuggestionsListView = mSearchLayout.findViewById(R.id.suggestion_list) as ListView
-        mSearchSrcTextView = mSearchLayout.findViewById(R.id.searchTextView) as EditText
-        mBackBtn = mSearchLayout.findViewById(R.id.action_up_btn) as ImageButton
-        mVoiceBtn = mSearchLayout.findViewById(R.id.action_voice_btn) as ImageButton
-        mEmptyBtn = mSearchLayout.findViewById(R.id.action_empty_btn) as ImageButton
+        mSearchTopBar = mSearchLayout.findViewById(R.id.search_top_bar)
+        mSuggestionsListView = mSearchLayout.findViewById(R.id.suggestion_list)
+        mSearchSrcTextView = mSearchLayout.findViewById(R.id.searchTextView)
+        mBackBtn = mSearchLayout.findViewById(R.id.action_up_btn)
+        mVoiceBtn = mSearchLayout.findViewById(R.id.action_voice_btn)
+        mEmptyBtn = mSearchLayout.findViewById(R.id.action_empty_btn)
         mTintView = mSearchLayout.findViewById(R.id.transparent_view)
 
-        mSearchSrcTextView.setOnClickListener(mOnClickListener)
-        mBackBtn.setOnClickListener(mOnClickListener)
-        mVoiceBtn.setOnClickListener(mOnClickListener)
-        mEmptyBtn.setOnClickListener(mOnClickListener)
-        mTintView.setOnClickListener(mOnClickListener)
+        mSearchSrcTextView?.setOnClickListener(mOnClickListener)
+        mBackBtn?.setOnClickListener(mOnClickListener)
+        mVoiceBtn?.setOnClickListener(mOnClickListener)
+        mEmptyBtn?.setOnClickListener(mOnClickListener)
+        mTintView?.setOnClickListener(mOnClickListener)
 
         allowVoiceSearch = false
 
@@ -157,18 +159,18 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
         initSearchView()
 
-        mSuggestionsListView.visibility = View.GONE
+        mSuggestionsListView?.visibility = View.GONE
         setAnimationDuration(AnimationUtil.ANIMATION_DURATION_MEDIUM)
     }
 
 
     private fun initSearchView() {
-        mSearchSrcTextView.setOnEditorActionListener { _, _, _ ->
+        mSearchSrcTextView?.setOnEditorActionListener { _, _, _ ->
             onSubmitQuery()
             true
         }
 
-        mSearchSrcTextView.addTextChangedListener(object : TextWatcher {
+        mSearchSrcTextView?.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
 
             }
@@ -184,10 +186,10 @@ class SearchView : FrameLayout, Filter.FilterListener {
             }
         })
 
-        mSearchSrcTextView.onFocusChangeListener =
+        mSearchSrcTextView?.onFocusChangeListener =
             OnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
-                    showKeyboard(mSearchSrcTextView)
+                    showKeyboard(mSearchSrcTextView!!)
                     showSuggestions()
                 }
             }
@@ -204,7 +206,7 @@ class SearchView : FrameLayout, Filter.FilterListener {
         when (v) {
             mBackBtn -> closeSearch()
             mVoiceBtn -> onVoiceClicked()
-            mEmptyBtn -> mSearchSrcTextView.text = null
+            mEmptyBtn -> mSearchSrcTextView?.text = null
             mSearchSrcTextView -> showSuggestions()
             mTintView -> closeSearch()
         }
@@ -228,30 +230,32 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
 
     private fun onTextChanged(newText: CharSequence) {
-        val text = mSearchSrcTextView.text
+        val text = mSearchSrcTextView?.text
         mUserQuery = text
         val hasText = !TextUtils.isEmpty(text)
         if (hasText) {
-            mEmptyBtn.visibility = View.VISIBLE
+            mEmptyBtn?.visibility = View.VISIBLE
             showVoice(false)
         } else {
-            mEmptyBtn.visibility = View.GONE
+            mEmptyBtn?.visibility = View.GONE
             showVoice(true)
         }
 
         if (!TextUtils.equals(newText, mOldQueryText)) {
-            mOnQueryChangeListener.onQueryTextChange(newText.toString())
+            mOnQueryChangeListener?.onQueryTextChange(newText.toString())
         }
         mOldQueryText = newText.toString()
     }
 
 
     private fun onSubmitQuery() {
-        val query = mSearchSrcTextView.text
+        val query = mSearchSrcTextView?.text
         if (query != null && TextUtils.getTrimmedLength(query) > 0) {
-            if (!mOnQueryChangeListener.onQueryTextSubmit(query.toString())) {
-                closeSearch()
-                mSearchSrcTextView.text = null
+            if(mOnQueryChangeListener != null){
+                if (!mOnQueryChangeListener!!.onQueryTextSubmit(query.toString())) {
+                    closeSearch()
+                    mSearchSrcTextView?.text = null
+                }
             }
         }
     }
@@ -300,27 +304,27 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
 
     fun setTextColor(color: Int) {
-        mSearchSrcTextView.setTextColor(color)
+        mSearchSrcTextView?.setTextColor(color)
     }
 
     fun setHintTextColor(color: Int) {
-        mSearchSrcTextView.setHintTextColor(color)
+        mSearchSrcTextView?.setHintTextColor(color)
     }
 
     fun setHint(hint: CharSequence?) {
-        mSearchSrcTextView.hint = hint
+        mSearchSrcTextView?.hint = hint
     }
 
     fun setVoiceIcon(drawable: Drawable?) {
-        mVoiceBtn.setImageDrawable(drawable)
+        mVoiceBtn?.setImageDrawable(drawable)
     }
 
     fun setCloseIcon(drawable: Drawable?) {
-        mEmptyBtn.setImageDrawable(drawable)
+        mEmptyBtn?.setImageDrawable(drawable)
     }
 
     fun setBackIcon(drawable: Drawable?) {
-        mBackBtn.setImageDrawable(drawable)
+        mBackBtn?.setImageDrawable(drawable)
     }
 
     fun setSuggestionIcon(drawable: Drawable?) {
@@ -328,15 +332,15 @@ class SearchView : FrameLayout, Filter.FilterListener {
     }
 
     fun setInputType(inputType: Int) {
-        mSearchSrcTextView.inputType = inputType
+        mSearchSrcTextView?.inputType = inputType
     }
 
 
     fun setSuggestionBackground(background: Drawable?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            mSuggestionsListView.background = background
+            mSuggestionsListView?.background = background
         } else {
-            mSuggestionsListView.setBackgroundDrawable(background)
+            mSuggestionsListView?.setBackgroundDrawable(background)
         }
     }
 
@@ -360,8 +364,8 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
 
     fun showSuggestions() {
-        if (mAdapter.count > 0 && mSuggestionsListView.visibility == View.GONE) {
-            mSuggestionsListView.visibility = View.VISIBLE
+        if (mAdapter != null && mAdapter!!.count > 0 && mSuggestionsListView?.visibility == View.GONE) {
+            mSuggestionsListView?.visibility = View.VISIBLE
         }
     }
 
@@ -372,45 +376,45 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
 
     fun setOnItemClickListener(listener: AdapterView.OnItemClickListener) {
-        mSuggestionsListView.onItemClickListener = listener
+        mSuggestionsListView?.onItemClickListener = listener
     }
 
 
     fun setAdapter(adapter: ListAdapter) {
         mAdapter = adapter
-        mSuggestionsListView.adapter = adapter
-        startFilter(mSearchSrcTextView.text)
+        mSuggestionsListView?.adapter = adapter
+        startFilter(mSearchSrcTextView?.text ?: "")
     }
 
 
     fun setSuggestions(suggestions: Array<String>?) {
         if (suggestions != null && suggestions.isNotEmpty()) {
-            mTintView.visibility = View.VISIBLE
+            mTintView?.visibility = View.VISIBLE
             val adapter = SearchAdapter(mContext, suggestions, suggestionIcon, ellipsize)
             setAdapter(adapter)
 
-            setOnItemClickListener(AdapterView.OnItemClickListener { parent, view, position, id ->
+            setOnItemClickListener(AdapterView.OnItemClickListener { _, _, position, _ ->
                 setQuery(
                     adapter.getItem(position), submit
                 )
             })
         } else {
-            mTintView.visibility = View.GONE
+            mTintView?.visibility = View.GONE
         }
     }
 
 
     fun dismissSuggestions() {
-        if (mSuggestionsListView.visibility == View.VISIBLE) {
-            mSuggestionsListView.visibility = View.GONE
+        if (mSuggestionsListView?.visibility == View.VISIBLE) {
+            mSuggestionsListView?.visibility = View.GONE
         }
     }
 
 
     fun setQuery(query: CharSequence?, submit: Boolean) {
-        mSearchSrcTextView.setText(query)
+        mSearchSrcTextView?.setText(query)
         if (query != null) {
-            mSearchSrcTextView.setSelection(mSearchSrcTextView.length())
+            mSearchSrcTextView?.setSelection(mSearchSrcTextView!!.length())
             mUserQuery = query
         }
         if (submit && !TextUtils.isEmpty(query)) {
@@ -421,19 +425,19 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
     fun showVoice(show: Boolean) {
         if (show && isVoiceAvailable() && allowVoiceSearch) {
-            mVoiceBtn.visibility = View.VISIBLE
+            mVoiceBtn?.visibility = View.VISIBLE
         } else {
-            mVoiceBtn.visibility = View.GONE
+            mVoiceBtn?.visibility = View.GONE
         }
     }
 
 
-    fun setMenuItem(menuItem: MenuItem) {
+    fun setMenuItem(menuItem: MenuItem?) {
         this.mMenuItem = menuItem
-        mMenuItem.setOnMenuItemClickListener(MenuItem.OnMenuItemClickListener {
+        mMenuItem?.setOnMenuItemClickListener {
             showSearch()
             true
-        })
+        }
     }
 
     fun isSearchOpen(): Boolean {
@@ -457,15 +461,15 @@ class SearchView : FrameLayout, Filter.FilterListener {
         }
 
         //Request Focus
-        mSearchSrcTextView.text = null
-        mSearchSrcTextView.requestFocus()
+        mSearchSrcTextView?.text = null
+        mSearchSrcTextView?.requestFocus()
 
         if (animate) {
             setVisibleWithAnimation()
 
         } else {
             mSearchLayout.visibility = View.VISIBLE
-            mSearchViewListener.onSearchViewShown()
+            mSearchViewListener?.onSearchViewShown()
         }
         mIsSearchOpen = true
     }
@@ -477,7 +481,7 @@ class SearchView : FrameLayout, Filter.FilterListener {
             }
 
             override fun onAnimationEnd(view: View): Boolean {
-                mSearchViewListener.onSearchViewShown()
+                mSearchViewListener?.onSearchViewShown()
                 return false
             }
 
@@ -503,12 +507,12 @@ class SearchView : FrameLayout, Filter.FilterListener {
             return
         }
 
-        mSearchSrcTextView.text = null
+        mSearchSrcTextView?.text = null
         dismissSuggestions()
         clearFocus()
 
         mSearchLayout.visibility = View.GONE
-        mSearchViewListener.onSearchViewClosed()
+        mSearchViewListener?.onSearchViewClosed()
 
         mIsSearchOpen = false
 
@@ -553,7 +557,7 @@ class SearchView : FrameLayout, Filter.FilterListener {
         // Don't accept focus if in the middle of clearing focus
         if (mClearingFocus) return false
         // Check if SearchView is focusable.
-        return if (!isFocusable) false else mSearchSrcTextView.requestFocus(
+        return if (!isFocusable) false else mSearchSrcTextView!!.requestFocus(
             direction,
             previouslyFocusedRect
         )
@@ -563,7 +567,7 @@ class SearchView : FrameLayout, Filter.FilterListener {
         mClearingFocus = true
         hideKeyboard(this)
         super.clearFocus()
-        mSearchSrcTextView.clearFocus()
+        mSearchSrcTextView?.clearFocus()
         mClearingFocus = false
     }
 
@@ -573,7 +577,6 @@ class SearchView : FrameLayout, Filter.FilterListener {
         mSavedState = SavedState(superState)
         mSavedState.query = if (mUserQuery != null) mUserQuery.toString() else null
         mSavedState.isSearchOpen = this.mIsSearchOpen
-
         return mSavedState
     }
 
