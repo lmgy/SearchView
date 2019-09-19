@@ -27,7 +27,6 @@
             android:hint="This is hint" />
 
 
-
     </FrameLayout>
 
 </LinearLayout>

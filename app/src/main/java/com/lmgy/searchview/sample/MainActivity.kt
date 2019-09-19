@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log.e
 import android.view.Menu
 import android.view.View
+import android.widget.Toast
 import com.lmgy.searchview.SearchView
 import com.lmgy.searchview.SearchView.OnQueryTextListener
 import kotlinx.android.synthetic.main.activity_main.*
@@ -19,12 +20,11 @@ class MainActivity : AppCompatActivity() {
 
         searchView.setOnQueryTextListener(object : OnQueryTextListener{
             override fun onQueryTextSubmit(query: String): Boolean {
-                e("asd", query)
+                Toast.makeText(this@MainActivity, query, Toast.LENGTH_SHORT).show()
                 return false
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
-                e("asd", newText)
                 return false
             }
 
