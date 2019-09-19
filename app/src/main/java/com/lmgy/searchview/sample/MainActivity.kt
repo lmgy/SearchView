@@ -29,7 +29,14 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+    }
 
+    override fun onBackPressed() {
+        if (searchView.isSearchOpen()) {
+            searchView.closeSearch()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
