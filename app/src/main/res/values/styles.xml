@@ -13,11 +13,11 @@
         <item name="android:dropDownWidth">wrap_content</item>
         <item name="android:colorBackground">?attr/colorPrimary</item>
         <item name="android:textColor">@android:color/white</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">18sp</item>
     </style>
 
     <style name="ToolbarTitleStyle" parent="@style/TextAppearance.Widget.AppCompat.Toolbar.Title">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textColor">@android:color/white</item>
     </style>
 
