@@ -1,15 +1,12 @@
 package com.lmgy.searchview
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
-import android.speech.RecognizerIntent
 import android.text.Editable
 import android.text.TextUtils
 import android.text.TextWatcher
@@ -29,43 +26,39 @@ import android.widget.*
  */
 class SearchView : FrameLayout, Filter.FilterListener {
 
+
     private var mMenuItem: MenuItem? = null
     private var mIsSearchOpen = false
     private var mAnimationDuration: Int = 0
     private var mClearingFocus: Boolean = false
-
-    //Views
     private lateinit var mSearchLayout: View
     private var mTintView: View? = null
     private var mSuggestionsListView: ListView? = null
     private var mSearchSrcTextView: EditText? = null
     private var mBackBtn: ImageButton? = null
-    private var mVoiceBtn: ImageButton? = null
     private var mEmptyBtn: ImageButton? = null
     private lateinit var mSearchTopBar: RelativeLayout
-
     private var mOldQueryText: CharSequence? = null
     private var mUserQuery: CharSequence? = null
-
     private var mOnQueryChangeListener: OnQueryTextListener? = null
     private var mSearchViewListener: SearchViewListener? = null
-
     private var mAdapter: ListAdapter? = null
-
     private lateinit var mSavedState: SavedState
     private var submit = false
-
     private var ellipsize = false
-
-    private var allowVoiceSearch: Boolean = false
     private lateinit var suggestionIcon: Drawable
-
-    private lateinit var mContext: Context
+    private var mContext: Context
+    private val mOnClickListener = OnClickListener { v ->
+        when (v) {
+            mBackBtn -> closeSearch()
+            mEmptyBtn -> mSearchSrcTextView?.text = null
+            mSearchSrcTextView -> showSuggestions()
+            mTintView -> closeSearch()
+        }
+    }
 
     constructor(context: Context) : this(context, null)
-
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
-
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
         context,
         attrs
@@ -74,7 +67,6 @@ class SearchView : FrameLayout, Filter.FilterListener {
         initiateView()
         initStyle(attrs, defStyleAttr)
     }
-
 
     @SuppressLint("PrivateResource")
     private fun initStyle(attrs: AttributeSet?, defStyleAttr: Int) {
@@ -100,10 +92,6 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
         if (a.hasValue(R.styleable.SearchView_android_hint)) {
             setHint(a.getString(R.styleable.SearchView_android_hint))
-        }
-
-        if (a.hasValue(R.styleable.SearchView_searchVoiceIcon)) {
-            setVoiceIcon(a.getDrawable(R.styleable.SearchView_searchVoiceIcon))
         }
 
         if (a.hasValue(R.styleable.SearchView_searchCloseIcon)) {
@@ -134,7 +122,6 @@ class SearchView : FrameLayout, Filter.FilterListener {
         a.recycle()
     }
 
-
     private fun initiateView() {
         LayoutInflater.from(mContext).inflate(R.layout.search_view, this, true)
         mSearchLayout = findViewById(R.id.search_layout)
@@ -143,26 +130,19 @@ class SearchView : FrameLayout, Filter.FilterListener {
         mSuggestionsListView = mSearchLayout.findViewById(R.id.suggestion_list)
         mSearchSrcTextView = mSearchLayout.findViewById(R.id.searchTextView)
         mBackBtn = mSearchLayout.findViewById(R.id.action_up_btn)
-        mVoiceBtn = mSearchLayout.findViewById(R.id.action_voice_btn)
         mEmptyBtn = mSearchLayout.findViewById(R.id.action_empty_btn)
         mTintView = mSearchLayout.findViewById(R.id.transparent_view)
 
         mSearchSrcTextView?.setOnClickListener(mOnClickListener)
         mBackBtn?.setOnClickListener(mOnClickListener)
-        mVoiceBtn?.setOnClickListener(mOnClickListener)
         mEmptyBtn?.setOnClickListener(mOnClickListener)
         mTintView?.setOnClickListener(mOnClickListener)
-
-        allowVoiceSearch = false
-
-        showVoice(true)
 
         initSearchView()
 
         mSuggestionsListView?.visibility = View.GONE
         setAnimationDuration(AnimationUtil.ANIMATION_DURATION_MEDIUM)
     }
-
 
     private fun initSearchView() {
         mSearchSrcTextView?.setOnEditorActionListener { _, _, _ ->
@@ -201,44 +181,14 @@ class SearchView : FrameLayout, Filter.FilterListener {
         }
     }
 
-
-    private val mOnClickListener = OnClickListener { v ->
-        when (v) {
-            mBackBtn -> closeSearch()
-            mVoiceBtn -> onVoiceClicked()
-            mEmptyBtn -> mSearchSrcTextView?.text = null
-            mSearchSrcTextView -> showSuggestions()
-            mTintView -> closeSearch()
-        }
-    }
-
-
-    private fun onVoiceClicked() {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        intent.putExtra(
-            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-            RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH
-        )    // setting recognition model, optimized for short phrases – search queries
-        intent.putExtra(
-            RecognizerIntent.EXTRA_MAX_RESULTS,
-            1
-        )    // quantity of results we want to receive
-        if (mContext is Activity) {
-            (mContext as Activity).startActivityForResult(intent, REQUEST_VOICE)
-        }
-    }
-
-
     private fun onTextChanged(newText: CharSequence) {
         val text = mSearchSrcTextView?.text
         mUserQuery = text
         val hasText = !TextUtils.isEmpty(text)
         if (hasText) {
             mEmptyBtn?.visibility = View.VISIBLE
-            showVoice(false)
         } else {
             mEmptyBtn?.visibility = View.GONE
-            showVoice(true)
         }
 
         if (!TextUtils.equals(newText, mOldQueryText)) {
@@ -247,11 +197,10 @@ class SearchView : FrameLayout, Filter.FilterListener {
         mOldQueryText = newText.toString()
     }
 
-
     private fun onSubmitQuery() {
         val query = mSearchSrcTextView?.text
         if (query != null && TextUtils.getTrimmedLength(query) > 0) {
-            if(mOnQueryChangeListener != null){
+            if (mOnQueryChangeListener != null) {
                 if (!mOnQueryChangeListener!!.onQueryTextSubmit(query.toString())) {
                     closeSearch()
                     mSearchSrcTextView?.text = null
@@ -260,24 +209,10 @@ class SearchView : FrameLayout, Filter.FilterListener {
         }
     }
 
-
-    private fun isVoiceAvailable(): Boolean {
-        if (isInEditMode) {
-            return true
-        }
-        val pm = context.packageManager
-        val activities = pm.queryIntentActivities(
-            Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0
-        )
-        return activities.size == 0
-    }
-
-
     fun hideKeyboard(view: View) {
         val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
-
 
     fun showKeyboard(view: View) {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1 && view.hasFocus()) {
@@ -288,7 +223,6 @@ class SearchView : FrameLayout, Filter.FilterListener {
         imm.showSoftInput(view, 0)
     }
 
-
     override fun setBackground(background: Drawable?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             mSearchTopBar.background = background
@@ -297,11 +231,9 @@ class SearchView : FrameLayout, Filter.FilterListener {
         }
     }
 
-
     override fun setBackgroundColor(color: Int) {
         mSearchTopBar.setBackgroundColor(color)
     }
-
 
     fun setTextColor(color: Int) {
         mSearchSrcTextView?.setTextColor(color)
@@ -313,10 +245,6 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
     fun setHint(hint: CharSequence?) {
         mSearchSrcTextView?.hint = hint
-    }
-
-    fun setVoiceIcon(drawable: Drawable?) {
-        mVoiceBtn?.setImageDrawable(drawable)
     }
 
     fun setCloseIcon(drawable: Drawable?) {
@@ -335,7 +263,6 @@ class SearchView : FrameLayout, Filter.FilterListener {
         mSearchSrcTextView?.inputType = inputType
     }
 
-
     fun setSuggestionBackground(background: Drawable?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             mSuggestionsListView?.background = background
@@ -343,7 +270,6 @@ class SearchView : FrameLayout, Filter.FilterListener {
             mSuggestionsListView?.setBackgroundDrawable(background)
         }
     }
-
 
     fun setCursorDrawable(drawable: Int) {
         try {
@@ -357,35 +283,25 @@ class SearchView : FrameLayout, Filter.FilterListener {
 
     }
 
-
-    fun setVoiceSearch(voiceSearch: Boolean) {
-        allowVoiceSearch = voiceSearch
-    }
-
-
     fun showSuggestions() {
         if (mAdapter != null && mAdapter!!.count > 0 && mSuggestionsListView?.visibility == View.GONE) {
             mSuggestionsListView?.visibility = View.VISIBLE
         }
     }
 
-
     fun setSubmitOnClick(submit: Boolean) {
         this.submit = submit
     }
 
-
     fun setOnItemClickListener(listener: AdapterView.OnItemClickListener) {
         mSuggestionsListView?.onItemClickListener = listener
     }
-
 
     fun setAdapter(adapter: ListAdapter) {
         mAdapter = adapter
         mSuggestionsListView?.adapter = adapter
         startFilter(mSearchSrcTextView?.text ?: "")
     }
-
 
     fun setSuggestions(suggestions: Array<String>?) {
         if (suggestions != null && suggestions.isNotEmpty()) {
@@ -403,13 +319,11 @@ class SearchView : FrameLayout, Filter.FilterListener {
         }
     }
 
-
     fun dismissSuggestions() {
         if (mSuggestionsListView?.visibility == View.VISIBLE) {
             mSuggestionsListView?.visibility = View.GONE
         }
     }
-
 
     fun setQuery(query: CharSequence?, submit: Boolean) {
         mSearchSrcTextView?.setText(query)
@@ -421,16 +335,6 @@ class SearchView : FrameLayout, Filter.FilterListener {
             onSubmitQuery()
         }
     }
-
-
-    fun showVoice(show: Boolean) {
-        if (show && isVoiceAvailable() && allowVoiceSearch) {
-            mVoiceBtn?.visibility = View.VISIBLE
-        } else {
-            mVoiceBtn?.visibility = View.GONE
-        }
-    }
-
 
     fun setMenuItem(menuItem: MenuItem?) {
         this.mMenuItem = menuItem
@@ -444,16 +348,13 @@ class SearchView : FrameLayout, Filter.FilterListener {
         return mIsSearchOpen
     }
 
-
     fun setAnimationDuration(duration: Int) {
         mAnimationDuration = duration
     }
 
-
     fun showSearch() {
         showSearch(true)
     }
-
 
     fun showSearch(animate: Boolean) {
         if (isSearchOpen()) {
@@ -596,38 +497,24 @@ class SearchView : FrameLayout, Filter.FilterListener {
         super.onRestoreInstanceState(mSavedState.getSuperState())
     }
 
-
     internal class SavedState : BaseSavedState {
         internal var query: String? = null
         var isSearchOpen: Boolean = false
 
         constructor(superState: Parcelable?) : super(superState)
 
+
         private constructor(`in`: Parcel) : super(`in`) {
             this.query = `in`.readString()
             this.isSearchOpen = `in`.readInt() == 1
         }
+
 
         override fun writeToParcel(out: Parcel, flags: Int) {
             super.writeToParcel(out, flags)
             out.writeString(query)
             out.writeInt(if (isSearchOpen) 1 else 0)
         }
-
-//        companion object {
-//
-//            //required field that makes Parcelables from a Parcel
-//            @JvmField
-//            val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
-//                override fun createFromParcel(`in`: Parcel): SavedState {
-//                    return SavedState(`in`)
-//                }
-//
-//                override fun newArray(size: Int): Array<SavedState> {
-//                    return arrayOfNulls(size)
-//                }
-//            }
-//        }
     }
 
     interface OnQueryTextListener {
@@ -661,8 +548,4 @@ class SearchView : FrameLayout, Filter.FilterListener {
         fun onSearchViewClosed()
     }
 
-
-    companion object {
-        const val REQUEST_VOICE = 9999
-    }
 }
