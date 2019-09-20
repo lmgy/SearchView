@@ -1,5 +1,6 @@
 package com.lmgy.searchview
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.text.TextUtils
@@ -7,13 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import java.util.ArrayList
+import java.util.*
 
 /**
  * @author lmgy
  * @date 2019/9/19
  */
-class SearchAdapter: BaseAdapter, Filterable {
+class SearchAdapter : BaseAdapter, Filterable {
 
     private var data: ArrayList<String>
     private var suggestions: Array<String>? = null
@@ -21,13 +22,18 @@ class SearchAdapter: BaseAdapter, Filterable {
     private var inflater: LayoutInflater? = null
     private var ellipsize: Boolean = false
 
-    constructor(context: Context, suggestions: Array<String>){
+    constructor(context: Context, suggestions: Array<String>) {
         inflater = LayoutInflater.from(context)
         data = ArrayList()
         this.suggestions = suggestions
     }
 
-    constructor(context: Context, suggestions: Array<String>, suggestionIcon: Drawable, ellipsize: Boolean){
+    constructor(
+        context: Context,
+        suggestions: Array<String>,
+        suggestionIcon: Drawable,
+        ellipsize: Boolean
+    ) {
         inflater = LayoutInflater.from(context)
         data = ArrayList()
         this.suggestions = suggestions
@@ -37,6 +43,7 @@ class SearchAdapter: BaseAdapter, Filterable {
 
     override fun getFilter(): Filter {
         return object : Filter() {
+            @SuppressLint("DefaultLocale")
             override fun performFiltering(constraint: CharSequence): FilterResults {
                 val filterResults = FilterResults()
                 if (!TextUtils.isEmpty(constraint)) {
@@ -93,7 +100,8 @@ class SearchAdapter: BaseAdapter, Filterable {
 
     private inner class SuggestionsViewHolder(convertView: View?) {
 
-        internal var textView: TextView = convertView?.findViewById(R.id.suggestion_text) as TextView
+        internal var textView: TextView =
+            convertView?.findViewById(R.id.suggestion_text) as TextView
         internal var imageView: ImageView? = null
 
         init {

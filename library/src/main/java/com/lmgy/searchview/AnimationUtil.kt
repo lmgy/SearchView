@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewAnimationUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.ViewPropertyAnimatorListener
+import kotlin.math.max
 
 /**
  * @author lmgy
@@ -29,7 +30,6 @@ class AnimationUtil {
     companion object {
         const val ANIMATION_DURATION_SHORT = 150
         const val ANIMATION_DURATION_MEDIUM = 400
-        const val ANIMATION_DURATION_LONG = 800
 
         fun crossFadeViews(showView: View, hideView: View) {
             crossFadeViews(showView, hideView, ANIMATION_DURATION_SHORT)
@@ -81,7 +81,7 @@ class AnimationUtil {
                 TypedValue.COMPLEX_UNIT_DIP, 24f, view.resources.displayMetrics
             ).toInt()
             val cy = view.height / 2
-            val finalRadius = Math.max(view.width, view.height)
+            val finalRadius = max(view.width, view.height)
 
             val anim =
                 ViewAnimationUtils.createCircularReveal(view, cx, cy, 0f, finalRadius.toFloat())
