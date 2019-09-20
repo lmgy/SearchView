@@ -4,17 +4,23 @@ import android.os.Bundle
 import android.view.Menu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import com.lmgy.searchview.SearchView
 import com.lmgy.searchview.SearchView.OnQueryTextListener
-import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var searchView: SearchView
+    private lateinit var toolbar: Toolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        setSupportActionBar(toolbar)
+        toolbar = findViewById(R.id.toolbar)
+        searchView = findViewById(R.id.searchView)
 
+        setSupportActionBar(toolbar)
         searchView.setOnQueryTextListener(object : OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 Toast.makeText(this@MainActivity, query, Toast.LENGTH_SHORT).show()
