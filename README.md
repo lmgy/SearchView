@@ -26,12 +26,83 @@ dependencies {
 }
 ```
 
+## Usage
+
+* Add SearchView to your layout file with Toolbar
+
+``` xml
+<FrameLayout
+    android:id="@+id/toolbar_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:titleTextColor="@android:color/white" />
+
+    <com.lmgy.searchview.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="This is hint" />
+
+</FrameLayout>
+```
+
+* Add the search item into the menu file
+
+``` xml
+<item
+    android:id="@+id/action_search"
+    android:icon="@drawable/ic_action_action_search"
+    android:orderInCategory="100"
+    android:title="search"
+    app:showAsAction="always" />
+```
+
+* Define it in the onCreateOptionsMenu
+
+``` kotlin
+override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    menuInflater.inflate(R.menu.menu_search_view, menu)
+    val item = menu?.findItem(R.id.action_search)
+    searchView.setMenuItem(item)
+    return true
+}
+```
+
+* Set the listener
+
+``` kotlin
+searchView.setOnQueryTextListener(object : OnQueryTextListener{
+    override fun onQueryTextChange(newText: String): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onQueryTextSubmit(query: String): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+})
+        
+searchView.setOnSearchViewListener(object : SearchView.SearchViewListener{
+    override fun onSearchViewClosed() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onSearchViewShown() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+})
+```
+
 ## Requirements
 
 * Minimum Android version: >= 4.1 (API 16)
 
 ## License
--------
 
 Copyright (C) 2018 lmgy
 
