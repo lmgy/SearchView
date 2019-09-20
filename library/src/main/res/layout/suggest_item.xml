@@ -24,4 +24,5 @@
         android:paddingRight="@dimen/search_icon_padding"
         android:focusable="false"
         android:src="@drawable/ic_suggestion" />
+
 </RelativeLayout>

@@ -39,6 +39,7 @@
                 android:textColorHint="#727272"
                 android:textSize="16sp"/>
 
+
             <ImageButton
                 android:id="@+id/action_up_btn"
                 style="@style/MSV_ImageButton"
@@ -53,6 +54,7 @@
                 android:layout_alignParentRight="true"
                 android:src="@drawable/ic_action_navigation_close"
                 android:visibility="gone"/>
+
 
             <View
                 android:layout_width="match_parent"
@@ -69,5 +71,9 @@
             android:layout_height="wrap_content"
             android:background="@android:color/white"
             android:divider="@android:color/transparent"/>
+
+
     </LinearLayout>
+
+
 </FrameLayout>
